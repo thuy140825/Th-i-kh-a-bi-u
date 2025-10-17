@@ -1,0 +1,5 @@
+{
+  "name": "Trình trích xuất thời khóa biểu giáo viên",
+  "description": "Tải lên hình ảnh thời khóa biểu và nhập tên giáo viên để trích xuất lịch dạy chi tiết của họ thành một bảng dễ đọc.",
+  "requestFramePermissions": []
+}
