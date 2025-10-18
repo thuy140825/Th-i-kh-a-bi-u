@@ -145,7 +145,7 @@ const App: React.FC = () => {
         </main>
 
         <footer className="text-center mt-10 text-sm text-gray-500">
-            <p>Được cung cấp bởi Gemini API</p>
+            <p>Thuộc sở hữu của Phạm Thị Mỹ Hạnh ❤️</p>
         </footer>
       </div>
     </div>
