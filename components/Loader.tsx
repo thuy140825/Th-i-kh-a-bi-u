@@ -1,11 +1,10 @@
-
 import React from 'react';
 
 const Loader: React.FC = () => {
   return (
     <div className="flex justify-center items-center p-4">
       <svg
-        className="animate-spin h-8 w-8 text-indigo-600"
+        className="animate-spin h-8 w-8 text-teal-700"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

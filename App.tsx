@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { extractTimetable } from './services/geminiService';
 import type { ScheduleEntry } from './types';
@@ -17,6 +16,10 @@ const App: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setImageFile(file);
+      // Revoke the old object URL to prevent memory leaks
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
       setImageUrl(URL.createObjectURL(file));
       setSchedule(null);
       setError(null);
@@ -59,73 +62,70 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-2xl">
         <header className="text-center mb-10">
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-            Trình trích xuất <span className="text-indigo-600">Thời Khóa Biểu</span>
+            Trình trích xuất <span className="text-teal-700">Thời Khóa Biểu</span>
           </h1>
           <p className="mt-3 max-w-2xl mx-auto text-lg text-gray-500">
             Tải lên ảnh thời khóa biểu và tên giáo viên để xem lịch dạy chi tiết.
           </p>
         </header>
 
-        <main className="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Image Uploader */}
-              <div>
-                <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ảnh thời khóa biểu
-                </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  <div className="space-y-1 text-center">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <div className="flex text-sm text-gray-600">
-                      <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                        <span>Tải lên một tệp</span>
-                        <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/*" />
-                      </label>
-                      <p className="pl-1">hoặc kéo và thả</p>
-                    </div>
-                    <p className="text-xs text-gray-500">PNG, JPG, GIF lên đến 10MB</p>
+        <main className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-gray-200">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Step 1: Image Upload */}
+            <div className="space-y-2">
+              <label className="text-lg font-semibold text-gray-800">
+                1. Tải lên ảnh thời khóa biểu
+              </label>
+              {imageUrl ? (
+                <div className="text-center p-4 border border-gray-200 rounded-lg">
+                  <img src={imageUrl} alt="Xem trước thời khóa biểu" className="rounded-lg shadow-md max-h-64 w-auto mx-auto border" />
+                   <label htmlFor="file-upload" className="mt-4 inline-block cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-700">
+                      <span>Thay đổi ảnh</span>
+                      <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/*" />
+                   </label>
+                </div>
+              ) : (
+                <label htmlFor="file-upload" className="relative block w-full h-48 border-2 border-gray-300 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-teal-700 transition-colors">
+                  <div className="flex flex-col items-center justify-center h-full">
+                     <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                     </svg>
+                    <span className="mt-2 block text-sm font-medium text-teal-700">
+                      Nhấn để tải lên
+                    </span>
+                    <span className="block text-xs text-gray-500">hoặc kéo và thả tệp</span>
                   </div>
-                </div>
-              </div>
-              
-              {/* Teacher Input & Image Preview */}
-              <div className="space-y-6">
-                <div>
-                    <label htmlFor="teacher-name" className="block text-sm font-medium text-gray-700">
-                      Tên giáo viên
-                    </label>
-                    <div className="mt-1">
-                      <input
-                        type="text"
-                        name="teacher-name"
-                        id="teacher-name"
-                        className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-                        placeholder="VD: Nguyễn Văn A"
-                        value={teacherName}
-                        onChange={(e) => setTeacherName(e.target.value)}
-                      />
-                    </div>
-                </div>
-                {imageUrl && (
-                    <div className="mt-4">
-                        <p className="block text-sm font-medium text-gray-700 mb-2">Ảnh xem trước:</p>
-                        <img src={imageUrl} alt="Timetable preview" className="rounded-lg shadow-md max-h-40 w-auto border" />
-                    </div>
-                )}
-              </div>
+                  <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleImageChange} accept="image/*" />
+                </label>
+              )}
             </div>
 
+            {/* Step 2: Teacher Name */}
+            <div className="space-y-2">
+              <label htmlFor="teacher-name" className="text-lg font-semibold text-gray-800">
+                2. Nhập tên giáo viên
+              </label>
+              <input
+                type="text"
+                name="teacher-name"
+                id="teacher-name"
+                className="shadow-sm focus:ring-teal-700 focus:border-teal-700 block w-full text-base border-gray-300 rounded-md p-3"
+                placeholder="VD: Hạnh"
+                value={teacherName}
+                onChange={(e) => setTeacherName(e.target.value)}
+                required
+              />
+            </div>
+            
+            {/* Submit Button */}
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300 disabled:cursor-not-allowed"
+                disabled={isLoading || !imageFile || !teacherName}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-teal-700 hover:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-700 disabled:bg-teal-500 disabled:cursor-not-allowed transition-transform transform hover:scale-105"
               >
                 {isLoading ? 'Đang xử lý...' : 'Trích xuất thời khóa biểu'}
               </button>
